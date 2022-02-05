@@ -6,14 +6,16 @@
 	//import Counter from '$lib/Counter.svelte';
 	import { validateDrop, uploadFile } from '$lib/utils';
 	const default_message = 'drop your index.html here';
+	let dropping = false;
 	let message = default_message;
 	let errorMessage = '';
 
 	let htmlFile;
-	let siteId = Math.random().toString(36).substring(2, 8); //TODO
+	let siteId = Math.random().toString(36).substring(2, 9); //TODO
 
 	function handleDrop(ev) {
 		ev.preventDefault();
+		dropping = false;
 		errorMessage = '';
 
 		try {
@@ -29,11 +31,13 @@
 	function handleDragOver(ev) {
 		ev.preventDefault();
 		console.log('handleDragOver', ev);
+		dropping = true;
 		message = 'let it gooo';
 	}
 
 	function handleDragLeave(ev) {
 		console.log('handleDragLeave', ev);
+		dropping = false;
 		message = default_message;
 	}
 
@@ -69,17 +73,21 @@
 		on:drop={handleDrop}
 		on:dragover={handleDragOver}
 		on:dragleave={handleDragLeave}
+		class:dropping
 	>
 		{message}
 	</div>
 
 	{#if htmlFile}
 		<div class="site-id">
-			looks great! where would you like it to live? https://index.html.club/~<input
-				type="text"
-				bind:value={siteId}
-			/>
-			<button on:click={handleUpload}>go!</button>
+			<form on:submit={handleUpload}>
+				looks great! where would you like it to live? https://index.html.club/~<input
+					type="text"
+					bind:value={siteId}
+					autofocus
+				/>
+				<button type="submit">go!</button>
+			</form>
 		</div>
 	{/if}
 
@@ -104,9 +112,16 @@
 		width: 100%;
 		height: 300px;
 		background: var(--secondary-color);
+		transition: background 150ms ease-out;
+		border: 1px solid var(--primary-color);
+		border-radius: 2px;
 		display: flex;
 		justify-content: center;
 		align-items: center;
+	}
+
+	.dropzone.dropping {
+		background: var(--primary-color);
 	}
 
 	.site-id {
