@@ -3,30 +3,92 @@
 </script>
 
 <script lang="ts">
-	import Counter from '$lib/Counter.svelte';
+	//import Counter from '$lib/Counter.svelte';
+	import { validateDrop, uploadFile } from '$lib/utils';
+	const default_message = 'drop your index.html here';
+	let message = default_message;
+	let errorMessage = '';
+
+	let htmlFile;
+	let siteId = Math.random().toString(36).substring(2, 8); //TODO
+
+	function handleDrop(ev) {
+		ev.preventDefault();
+		errorMessage = '';
+
+		try {
+			const file = validateDrop(ev);
+			message = 'got it!';
+			htmlFile = file;
+		} catch (err) {
+			errorMessage = err.message;
+			message = default_message;
+		}
+	}
+
+	function handleDragOver(ev) {
+		ev.preventDefault();
+		console.log('handleDragOver', ev);
+		message = 'let it gooo';
+	}
+
+	function handleDragLeave(ev) {
+		console.log('handleDragLeave', ev);
+		message = default_message;
+	}
+
+	function handleUpload() {
+		uploadFile(htmlFile, siteId)
+			.then((res) => {
+				if (res.status === 200) {
+					window.location.assign(`/~${siteId}`);
+				} else if (res.status >= 400) {
+					const body = res.json();
+					body.then((body) => {
+						errorMessage = body.error.message;
+					});
+				}
+			})
+			.catch((e) => {
+				if (e.message) {
+					errorMessage = 'Error uploading: ' + e.message;
+				} else {
+					errorMessage = 'Something when wrong';
+				}
+			});
+	}
 </script>
 
 <svelte:head>
-	<title>Home</title>
+	<title>index.html.club</title>
 </svelte:head>
 
 <section>
-	<h1>
-		<div class="welcome">
-			<picture>
-				<source srcset="svelte-welcome.webp" type="image/webp" />
-				<img src="svelte-welcome.png" alt="Welcome" />
-			</picture>
+	<div
+		class="dropzone"
+		on:drop={handleDrop}
+		on:dragover={handleDragOver}
+		on:dragleave={handleDragLeave}
+	>
+		{message}
+	</div>
+
+	{#if htmlFile}
+		<div class="site-id">
+			looks great! where would you like it to live? https://index.html.club/~<input
+				type="text"
+				bind:value={siteId}
+			/>
+			<button on:click={handleUpload}>go!</button>
 		</div>
+	{/if}
 
-		to your new<br />SvelteKit app
-	</h1>
+	<p class="error-container">{errorMessage}</p>
 
-	<h2>
-		try editing <strong>src/routes/index.svelte</strong>
-	</h2>
-
-	<Counter />
+	<p>
+		need a head start? download a sample <a href="/sample-index.html" download>index.html here</a> and
+		get building
+	</p>
 </section>
 
 <style>
@@ -38,22 +100,20 @@
 		flex: 1;
 	}
 
-	h1 {
+	.dropzone {
 		width: 100%;
+		height: 300px;
+		background: var(--secondary-color);
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 
-	.welcome {
-		position: relative;
-		width: 100%;
-		height: 0;
-		padding: 0 0 calc(100% * 495 / 2048) 0;
+	.site-id {
+		padding: 1em 0;
 	}
 
-	.welcome img {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		top: 0;
-		display: block;
+	.error-container {
+		color: red;
 	}
 </style>
