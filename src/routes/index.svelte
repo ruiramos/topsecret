@@ -95,7 +95,7 @@
 
 	<p>
 		need a head start? download a sample <a href="/sample-index.html" download>index.html here</a> and
-		get building
+		start building
 	</p>
 </section>
 
