@@ -41,7 +41,8 @@
 		message = default_message;
 	}
 
-	function handleUpload() {
+	function handleUpload(ev) {
+		ev.preventDefault();
 		uploadFile(htmlFile, siteId)
 			.then((res) => {
 				if (res.status === 200) {
