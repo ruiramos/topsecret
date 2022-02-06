@@ -43,6 +43,7 @@
 
 	function handleUpload(ev) {
 		ev.preventDefault();
+		if (!siteId) return;
 		uploadFile(htmlFile, siteId)
 			.then((res) => {
 				if (res.status === 200) {

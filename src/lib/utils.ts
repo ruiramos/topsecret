@@ -1,3 +1,5 @@
+import { dev } from '$app/env';
+
 export function validateDrop(ev: DragEvent): File {
 	if (!ev.dataTransfer.items) {
 		throw new Error('No files found');
@@ -36,4 +38,23 @@ export async function uploadFile(file: File, id: string) {
 		method: 'POST',
 		body: data
 	});
+}
+
+export async function getWebsite(key: string) {
+	if (dev) {
+		global.websites = global.websites || {};
+		return Promise.resolve(global.websites[key]);
+	} else {
+		return SITE_STORE.get(key);
+	}
+}
+
+export async function setWebsite(key: string, html: string) {
+	if (dev) {
+		global.websites = global.websites || {};
+		global.websites[key] = html;
+		return Promise.resolve(html);
+	} else {
+		return SITE_STORE.put(key, html);
+	}
 }

@@ -1,0 +1,21 @@
+name = "indexhtmlclub"
+type = "javascript"
+route = ''
+
+account_id = '6bfbd6272755e964a19f0b2d326638ad'
+zone_id = ''
+usage_model = ''
+compatibility_flags = []
+workers_dev = true
+site = {bucket = "./build",entry-point = "workers-site"}
+compatibility_date = "2022-02-06"
+
+kv_namespaces = [
+  { binding = "SITE_STORE", preview_id = "6c8f50711b664aac9a6012a09a45fc15", id = "99cc6b0f891f41b39f5dd681ae38747b" }
+]
+
+[build]
+command = "npm install && npm run build"
+
+[build.upload]
+format = "service-worker"

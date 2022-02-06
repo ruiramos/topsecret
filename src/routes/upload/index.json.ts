@@ -1,4 +1,5 @@
 import type { RequestHandler } from '@sveltejs/kit';
+import { getWebsite, setWebsite } from '$lib/utils';
 
 const baseUrl = 'http://localhost:3000';
 
@@ -21,9 +22,9 @@ export const post: RequestHandler = async (event) => {
 
 	console.log(contents, id);
 
-	global.websites = global.websites || {};
+	const existing = await getWebsite(id);
 
-	if (global.websites[id]) {
+	if (existing) {
 		return {
 			status: 403,
 			body: {
@@ -32,7 +33,7 @@ export const post: RequestHandler = async (event) => {
 		};
 	}
 
-	global.websites[id] = contents;
+	await setWebsite(id, contents);
 
 	return {
 		status: 200,

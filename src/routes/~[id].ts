@@ -1,9 +1,9 @@
+import { getWebsite } from '$lib/utils';
 /** @type {import('@sveltejs/kit').RequestHandler} */
 export async function get({ params }) {
 	const id = params.id;
 
-	global.websites = global.websites || {};
-	const site = global.websites[id];
+	const site = await getWebsite(id);
 
 	if (site) {
 		return {
