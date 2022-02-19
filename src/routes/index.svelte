@@ -5,7 +5,7 @@
 
 <script lang="ts">
 	//import Counter from '$lib/Counter.svelte';
-	import { validateDrop, uploadFile, validateLockSiteId } from '$lib/utils';
+	import { validateDrop, uploadSite, validateLockSiteId } from '$lib/utils';
 	import Dropzone from '$lib/Dropzone.svelte';
 	import SiteIdForm from '$lib/SiteIdForm.svelte';
 	import Preview from '$lib/Preview.svelte';
@@ -49,7 +49,7 @@
 	}
 
 	function handleUpload() {
-		uploadFile(htmlContent, siteId)
+		uploadSite(htmlContent, siteId)
 			.then((res) => {
 				if (res.status === 200) {
 					window.location.assign(`/~${siteId}`);
