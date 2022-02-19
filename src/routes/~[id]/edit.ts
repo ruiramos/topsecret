@@ -1,4 +1,5 @@
 import { getWebsite } from '$lib/serverUtils';
+
 /** @type {import('@sveltejs/kit').RequestHandler} */
 export async function get({ params }) {
 	const id = params.id;
@@ -7,18 +8,11 @@ export async function get({ params }) {
 
 	if (site && site.indexOf('lock-') !== 0) {
 		return {
-			body: site,
-			headers: {
-				'content-type': 'text/html'
-			}
+			body: { site: encodeURIComponent(site) }
 		};
 	} else {
 		return {
-			status: 404,
-			body: 'Not found',
-			headers: {
-				'content-type': 'text/html'
-			}
+			status: 404
 		};
 	}
 }

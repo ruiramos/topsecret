@@ -94,6 +94,10 @@ button:focus:not(:focus-visible) {
 	outline: none;
 }
 
+.error-container {
+	color: red;
+}
+
 @media (min-width: 720px) {
 	h1 {
 		font-size: 2.4rem;

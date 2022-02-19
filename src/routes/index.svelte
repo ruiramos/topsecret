@@ -1,49 +1,54 @@
 <script context="module" lang="ts">
+	import '../app.css';
 	export const prerender = true;
 </script>
 
 <script lang="ts">
 	//import Counter from '$lib/Counter.svelte';
-	import { validateDrop, uploadFile } from '$lib/utils';
-	const default_message = 'drop your index.html here';
-	let dropping = false;
-	let message = default_message;
+	import { validateDrop, uploadFile, validateLockSiteId } from '$lib/utils';
+	import Dropzone from '$lib/Dropzone.svelte';
+	import SiteIdForm from '$lib/SiteIdForm.svelte';
+	import Preview from '$lib/Preview.svelte';
+	import { autofocus } from '$lib/autofocus';
+
+	let initialSiteId = Math.random().toString(36).substring(2, 9); //TODO
+	let siteId;
+
 	let errorMessage = '';
-
 	let htmlFile;
-	let siteId = Math.random().toString(36).substring(2, 9); //TODO
+	let htmlContent;
 
-	function handleDrop(ev) {
-		ev.preventDefault();
-		dropping = false;
-		errorMessage = '';
-
-		try {
-			const file = validateDrop(ev);
-			message = 'got it!';
-			htmlFile = file;
-		} catch (err) {
-			errorMessage = err.message;
-			message = default_message;
+	async function handleDrop({ detail }) {
+		if (detail.error) {
+			errorMessage = detail.error.message;
+		} else {
+			errorMessage = '';
+			htmlFile = detail.file;
+			htmlContent = await htmlFile.text();
 		}
 	}
 
-	function handleDragOver(ev) {
-		ev.preventDefault();
-		console.log('handleDragOver', ev);
-		dropping = true;
-		message = 'let it gooo';
+	function handleSetSiteId({ detail }) {
+		if (!detail.siteId) return;
+		errorMessage = '';
+		validateLockSiteId(detail.siteId)
+			.then((res) => {
+				if (res.status === 200) {
+					siteId = detail.siteId;
+				} else if (res.status >= 400) {
+					const body = res.json();
+					body.then((body) => {
+						console.log(body.error.message);
+						errorMessage = body.error.message;
+					});
+				}
+			})
+			.catch((err) => {
+				siteIdError = err.message;
+			});
 	}
 
-	function handleDragLeave(ev) {
-		console.log('handleDragLeave', ev);
-		dropping = false;
-		message = default_message;
-	}
-
-	function handleUpload(ev) {
-		ev.preventDefault();
-		if (!siteId) return;
+	function handleUpload() {
 		uploadFile(htmlFile, siteId)
 			.then((res) => {
 				if (res.status === 200) {
@@ -70,34 +75,34 @@
 </svelte:head>
 
 <section>
-	<div
-		class="dropzone"
-		on:drop={handleDrop}
-		on:dragover={handleDragOver}
-		on:dragleave={handleDragLeave}
-		class:dropping
-	>
-		{message}
-	</div>
+	<p>community of creators for the simple web / static hosting for index.html-only websites</p>
 
-	{#if htmlFile}
-		<div class="site-id">
-			<form on:submit={handleUpload}>
-				looks great! where would you like it to live? https://index.html.club/~<input
-					type="text"
-					bind:value={siteId}
-					autofocus
-				/>
-				<button type="submit">go!</button>
-			</form>
+	<Dropzone {validateDrop} on:drop={handleDrop} />
+
+	{#if htmlContent}
+		<Preview content={htmlContent} blurContents={true} />
+		<div class="overlay">
+			{#if !siteId}
+				<SiteIdForm {initialSiteId} {errorMessage} on:submit={handleSetSiteId} />
+			{:else}
+				<p>
+					nearly there! please login or create an account to publish your site to {`https://index.html.club/~${siteId}`}
+				</p>
+				<p>TODO</p>
+				<button on:click={handleUpload} use:autofocus>done!</button>
+			{/if}
 		</div>
 	{/if}
+
+	{#if htmlContent && siteId}{/if}
 
 	<p class="error-container">{errorMessage}</p>
 
 	<p>
-		need a head start? download a sample <a href="/sample-index.html" download>index.html here</a> and
-		start building
+		need a head start? download a sample <a href="/sample-index.html" download>index.html here</a>
+		or try using an
+		<a href="https://jsbin.com/bafajowetu/edit?html,output" target="_blank">online editor</a> and download
+		the file
 	</p>
 </section>
 
@@ -126,11 +131,15 @@
 		background: var(--primary-color);
 	}
 
-	.site-id {
-		padding: 1em 0;
-	}
-
 	.error-container {
 		color: red;
+	}
+
+	.overlay {
+		z-index: 100;
+		position: absolute;
+		top: 25%;
+		padding: 1em 2em;
+		background: rgba(255, 255, 255, 0.95);
 	}
 </style>
