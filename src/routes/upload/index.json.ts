@@ -5,11 +5,11 @@ import { getWebsite, setWebsite, getCookieUserId } from '$lib/serverUtils';
 export const post: RequestHandler = async (event) => {
 	const data = await event.request.formData();
 
-	if (!data.has('file') || !data.has('id')) {
-		console.error('No file or id found', Array.from(data.entries()));
+	if (!data.has('contents') || !data.has('id')) {
+		console.error('No contents or id found', Array.from(data.entries()));
 		return {
 			status: 500,
-			body: 'Need a file and a page id'
+			body: 'Need some contents and a page id'
 		};
 	}
 
@@ -23,9 +23,9 @@ export const post: RequestHandler = async (event) => {
 	}
 
 	const id = data.get('id') as string;
-	const file = data.get('file') as File;
+	const contents = data.get('contents') as string;
 
-	const contents = await file.text();
+	//const contents = await file.text();
 
 	const current = await getWebsite(id);
 

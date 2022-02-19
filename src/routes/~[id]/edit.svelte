@@ -1,6 +1,6 @@
 <script>
 	import Preview from '$lib/Preview.svelte';
-	import { updateSite } from '$lib/utils';
+	import { updateSite, uploadSite, generateSiteId } from '$lib/utils';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 
@@ -13,6 +13,12 @@
 	async function handleSave() {
 		await updateSite(realSite, id);
 		window.location.assign(`/~${id}`);
+	}
+
+	async function handleSaveAsNew() {
+		let newId = await generateSiteId();
+		await uploadSite(realSite, newId);
+		window.location.assign(`/~${newId}`);
 	}
 </script>
 
@@ -27,6 +33,7 @@
 			<button on:click={() => (mode = 'edit')}>edit</button>
 		{:else if mode === 'edit'}
 			<button on:click={handleSave}>save</button>
+			<button on:click={handleSaveAsNew}>save as new</button>
 			<button
 				on:click={() => {
 					realSite = decodeURIComponent(site);

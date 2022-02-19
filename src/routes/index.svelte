@@ -49,7 +49,7 @@
 	}
 
 	function handleUpload() {
-		uploadFile(htmlFile, siteId)
+		uploadFile(htmlContent, siteId)
 			.then((res) => {
 				if (res.status === 200) {
 					window.location.assign(`/~${siteId}`);

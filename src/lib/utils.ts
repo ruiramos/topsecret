@@ -27,9 +27,9 @@ export function validateDrop(ev: DragEvent): File {
 	return file;
 }
 
-export async function uploadFile(file: File, id: string) {
+export async function uploadSite(contents: File, id: string) {
 	const data = new FormData();
-	data.append('file', file);
+	data.append('contents', contents);
 	data.append('id', id);
 
 	return fetch('/upload.json', {
@@ -56,5 +56,13 @@ export async function updateSite(contents: string, id: string) {
 	return fetch('/upload.json', {
 		method: 'PUT',
 		body: data
+	});
+}
+
+export async function generateSiteId() {
+	const newId = Math.random().toString(36).substring(2, 9);
+	return validateLockSiteId(newId).then((res) => {
+		if (res.status === 200) return newId;
+		return generateSiteId();
 	});
 }
