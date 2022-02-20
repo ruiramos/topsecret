@@ -9,7 +9,7 @@
 	import Dropzone from '$lib/Dropzone.svelte';
 	import SiteIdForm from '$lib/SiteIdForm.svelte';
 	import Preview from '$lib/Preview.svelte';
-	import { autofocus } from '$lib/autofocus';
+	//import { autofocus } from '$lib/autofocus';
 
 	let initialSiteId = Math.random().toString(36).substring(2, 9); //TODO
 	let siteId;
@@ -17,6 +17,7 @@
 	let errorMessage = '';
 	let htmlFile;
 	let htmlContent;
+	let redirectToEdit = false;
 
 	async function handleDrop({ detail }) {
 		if (detail.error) {
@@ -35,6 +36,7 @@
 			.then((res) => {
 				if (res.status === 200) {
 					siteId = detail.siteId;
+					handleUpload();
 				} else if (res.status >= 400) {
 					const body = res.json();
 					body.then((body) => {
@@ -52,7 +54,7 @@
 		uploadSite(htmlContent, siteId)
 			.then((res) => {
 				if (res.status === 200) {
-					window.location.assign(`/~${siteId}`);
+					window.location.assign(`/~${siteId}${redirectToEdit ? '/edit' : ''}`);
 				} else if (res.status >= 400) {
 					const body = res.json();
 					body.then((body) => {
@@ -67,6 +69,13 @@
 					errorMessage = 'Something when wrong';
 				}
 			});
+	}
+
+	async function handleTemplateStart(e) {
+		e.preventDefault();
+		const resp = await fetch('/sample-index.html');
+		htmlContent = await resp.text();
+		redirectToEdit = true;
 	}
 </script>
 
@@ -85,11 +94,13 @@
 			{#if !siteId}
 				<SiteIdForm {initialSiteId} {errorMessage} on:submit={handleSetSiteId} />
 			{:else}
+				<!--
 				<p>
 					nearly there! please login or create an account to publish your site to {`https://index.html.club/~${siteId}`}
 				</p>
 				<p>TODO</p>
 				<button on:click={handleUpload} use:autofocus>done!</button>
+				-->
 			{/if}
 		</div>
 	{/if}
@@ -99,10 +110,9 @@
 	<p class="error-container">{errorMessage}</p>
 
 	<p>
-		need a head start? download a sample <a href="/sample-index.html" download>index.html here</a>
-		or try using an
-		<a href="https://jsbin.com/bafajowetu/edit?html,output" target="_blank">online editor</a> and download
-		the file
+		don't have a html website yet? <a href="#" on:click={handleTemplateStart}
+			>start from a basic template!</a
+		>
 	</p>
 </section>
 

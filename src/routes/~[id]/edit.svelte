@@ -1,12 +1,16 @@
 <script>
 	import Preview from '$lib/Preview.svelte';
+	import Editor from '$lib/Editor.svelte';
 	import { updateSite, uploadSite, generateSiteId } from '$lib/utils';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import debounce from 'lodash-es/debounce';
 
 	export let site;
-	$: realSite = decodeURIComponent(site);
 
+	const DEBOUNCE_DELAY = 1000;
+
+	let realSite = decodeURIComponent(site);
 	let mode = 'edit';
 	const { id } = $page.params;
 
@@ -20,10 +24,18 @@
 		await uploadSite(realSite, newId);
 		window.location.assign(`/~${newId}`);
 	}
+
+	function handleEditorMsg(e) {
+		realSite = e.detail.content;
+	}
+
+	const handleEditorMsgDebounced = debounce(handleEditorMsg, DEBOUNCE_DELAY);
 </script>
 
 <div class={mode}>
-	<textarea bind:value={realSite} />
+	<div class="editor-container">
+		<Editor content={realSite} on:update={handleEditorMsgDebounced} />
+	</div>
 
 	<div class="site-preview-container">
 		<Preview content={realSite} />
@@ -57,7 +69,7 @@
 
 	.preview {
 	}
-	.preview textarea {
+	.preview .editor-container {
 		display: none;
 	}
 
@@ -69,7 +81,7 @@
 		position: relative;
 		width: 50%;
 	}
-	.edit textarea {
+	.edit .editor-container {
 		width: 50%;
 		height: 100vh;
 	}
