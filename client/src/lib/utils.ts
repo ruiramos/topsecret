@@ -53,6 +53,12 @@ export async function updateSite(contents: string, id: string) {
 	data.append('contents', contents);
 	data.append('id', id);
 
+	const key = getLocalWebsiteKey(id);
+
+	if (key) {
+		data.append('key', key);
+	}
+
 	return fetch('/upload.json', {
 		method: 'PUT',
 		body: data
@@ -65,4 +71,29 @@ export async function generateSiteId() {
 		if (res.status === 200) return newId;
 		return generateSiteId();
 	});
+}
+
+export function updateLocalStorage(id, key) {
+	let sites;
+	try {
+		sites = JSON.parse(window.localStorage.getItem('sites')) || {};
+	} catch (e) {
+		sites = {};
+	}
+	sites[id] = { key };
+
+	console.log(sites);
+
+	window.localStorage.setItem('sites', JSON.stringify(sites));
+}
+
+export function getLocalWebsiteKey(id: string) {
+	let sites;
+	try {
+		sites = JSON.parse(window.localStorage.getItem('sites')) || {};
+	} catch (e) {
+		sites = {};
+	}
+
+	return sites[id] && sites[id].key;
 }

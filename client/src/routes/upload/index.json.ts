@@ -1,7 +1,14 @@
 import type { RequestHandler } from '@sveltejs/kit';
-import { getWebsite, setWebsite, getCookieUserId } from '$lib/serverUtils';
+import {
+	getWebsite,
+	getWebsiteKey,
+	setWebsite,
+	getCookieUserId,
+	generateKey
+} from '$lib/serverUtils';
 
 // POST /upload.json
+// creates a new site
 export const post: RequestHandler = async (event) => {
 	const data = await event.request.formData();
 
@@ -25,8 +32,6 @@ export const post: RequestHandler = async (event) => {
 	const id = data.get('id') as string;
 	const contents = data.get('contents') as string;
 
-	//const contents = await file.text();
-
 	const current = await getWebsite(id);
 
 	if (current && current !== `lock-${userId}`) {
@@ -38,15 +43,17 @@ export const post: RequestHandler = async (event) => {
 		};
 	}
 
-	await setWebsite(id, contents);
+	const key = generateKey();
+	await setWebsite(id, contents, key);
 
 	return {
 		status: 200,
-		body: { result: 'ok' }
+		body: { key, id }
 	};
 };
 
 // PUT /upload.json
+// updates a site
 export const put: RequestHandler = async (event) => {
 	const data = await event.request.formData();
 
@@ -59,12 +66,21 @@ export const put: RequestHandler = async (event) => {
 	}
 
 	const id = data.get('id') as string;
-	const contents = data.get('contents') as File;
+	const contents = data.get('contents') as string;
+	const key = data.get('key') as string;
 
-	await setWebsite(id, contents);
+	const siteKey = await getWebsiteKey(id);
 
-	return {
-		status: 200,
-		body: { result: 'ok' }
-	};
+	if (siteKey === key || !siteKey) {
+		await setWebsite(id, contents, key);
+		return {
+			status: 200,
+			body: { result: 'ok' }
+		};
+	} else {
+		return {
+			status: 403,
+			body: { error: { message: 'forbidden - site needs a key' } }
+		};
+	}
 };

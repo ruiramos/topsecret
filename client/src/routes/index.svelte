@@ -5,7 +5,7 @@
 
 <script lang="ts">
 	//import Counter from '$lib/Counter.svelte';
-	import { validateDrop, uploadSite, validateLockSiteId } from '$lib/utils';
+	import { validateDrop, uploadSite, validateLockSiteId, updateLocalStorage } from '$lib/utils';
 	import Dropzone from '$lib/Dropzone.svelte';
 	import SiteIdForm from '$lib/SiteIdForm.svelte';
 	import Preview from '$lib/Preview.svelte';
@@ -54,7 +54,11 @@
 		uploadSite(htmlContent, siteId)
 			.then((res) => {
 				if (res.status === 200) {
-					window.location.assign(`/~${siteId}${redirectToEdit ? '/edit' : ''}`);
+					const data = res.json();
+					data.then((data) => {
+						updateLocalStorage(siteId, data.key);
+						window.location.assign(`/~${siteId}${redirectToEdit ? '/edit' : ''}`);
+					});
 				} else if (res.status >= 400) {
 					const body = res.json();
 					body.then((body) => {

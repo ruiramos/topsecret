@@ -17,7 +17,7 @@
 <div class="site-id">
 	<form on:submit={handleUpload}>
 		<p>
-			looking good! where would you like it to go? https://index.html.club/~<input
+			great stuff! where would you like this to live? https://index.html.club/~<input
 				type="text"
 				bind:value={siteId}
 				use:autofocus

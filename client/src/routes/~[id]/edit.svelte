@@ -1,28 +1,40 @@
 <script>
 	import Preview from '$lib/Preview.svelte';
 	import Editor from '$lib/Editor.svelte';
-	import { updateSite, uploadSite, generateSiteId } from '$lib/utils';
+	import { updateSite, uploadSite, generateSiteId, updateLocalStorage } from '$lib/utils';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import debounce from 'lodash-es/debounce';
 
 	export let site;
 
-	const DEBOUNCE_DELAY = 1000;
+	const DEBOUNCE_DELAY = 400;
 
 	let realSite = decodeURIComponent(site);
 	let mode = 'edit';
 	const { id } = $page.params;
 
 	async function handleSave() {
-		await updateSite(realSite, id);
-		window.location.assign(`/~${id}`);
+		const response = await updateSite(realSite, id);
+
+		if (response.status === 200) {
+			window.location.assign(`/~${id}`);
+		} else {
+			const body = await response.json();
+			window.alert(body.error.message);
+		}
 	}
 
 	async function handleSaveAsNew() {
 		let newId = await generateSiteId();
-		await uploadSite(realSite, newId);
-		window.location.assign(`/~${newId}`);
+		const response = await uploadSite(realSite, newId);
+		if (response.status === 200) {
+			const data = response.json();
+			data.then((data) => {
+				updateLocalStorage(newId, data.key);
+				window.location.assign(`/~${newId}`);
+			});
+		}
 	}
 
 	function handleEditorMsg(e) {
@@ -40,7 +52,7 @@
 	<div class="site-preview-container">
 		<Preview content={realSite} />
 	</div>
-	<div class="floating-bar">
+	<div class="floating-bar" draggable="true">
 		{#if mode === 'preview'}
 			<button on:click={() => (mode = 'edit')}>edit</button>
 		{:else if mode === 'edit'}
@@ -48,8 +60,7 @@
 			<button on:click={handleSaveAsNew}>save as new</button>
 			<button
 				on:click={() => {
-					realSite = decodeURIComponent(site);
-					mode = 'preview';
+					window.location.assign(`/~${id}`);
 				}}>discard</button
 			>
 		{/if}
