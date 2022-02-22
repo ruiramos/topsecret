@@ -4,8 +4,12 @@ import { getWebsite } from '$lib/serverUtils';
 export async function get({ params }) {
 	const id = params.id;
 
-	const injected_script = `
+	const page = (content) => `<html><head></head><body style="margin: 0; padding: 0">
+	<iframe 
+		style="width: 100%; height: 100vh; border: 0" 
+		sandbox="allow-scripts allow-pointer-lock allow-popups allow-forms"></iframe>
 	<script type="text/javascript">
+		document.querySelector('iframe').srcdoc = decodeURIComponent("${content}");
 		try {
 			const sites = JSON.parse(window.localStorage.getItem("sites") || '{}');
 			if(sites["${encodeURIComponent(id)}"]){
@@ -28,13 +32,13 @@ export async function get({ params }) {
 
 		} catch (e){ console.error(e)}
 	</script>
+	</body></html>
 	`;
-
 	const site = await getWebsite(id);
 
 	if (site && site.indexOf('lock-') !== 0) {
 		return {
-			body: site + '\n' + injected_script,
+			body: page(encodeURIComponent(site)),
 			headers: {
 				'content-type': 'text/html'
 			}

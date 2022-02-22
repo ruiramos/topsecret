@@ -25,7 +25,11 @@
 </script>
 
 <div class={blurContents ? 'blur' : ''}>
-	<iframe title="site preview" bind:this={iframe} />
+	<iframe
+		sandbox="allow-scripts allow-pointer-lock allow-popups allow-forms"
+		title="site preview"
+		bind:this={iframe}
+	/>
 </div>
 
 <style>
