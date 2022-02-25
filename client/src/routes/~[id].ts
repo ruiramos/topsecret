@@ -1,10 +1,15 @@
 import { getWebsite } from '$lib/serverUtils';
 /** @type {import('@sveltejs/kit').RequestHandler} */
 
-export async function get({ params }) {
+export async function get({ params, url }) {
 	const id = params.id;
+	const raw = !!url.searchParams.get('raw');
 
-	const page = (content) => `<html><head></head><body style="margin: 0; padding: 0">
+	const page = (content) => `<html>
+	<head>
+			<meta name="viewport" content="width=device-width, initial-scale=1">
+	</head>
+	<body style="margin: 0; padding: 0">
 	<iframe 
 		style="width: 100%; height: 100vh; border: 0" 
 		sandbox="allow-scripts allow-pointer-lock allow-popups allow-forms"></iframe>
@@ -38,7 +43,7 @@ export async function get({ params }) {
 
 	if (site && site.indexOf('lock-') !== 0) {
 		return {
-			body: page(encodeURIComponent(site)),
+			body: raw ? site : page(encodeURIComponent(site)),
 			headers: {
 				'content-type': 'text/html'
 			}
