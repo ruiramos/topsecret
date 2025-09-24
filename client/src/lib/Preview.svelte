@@ -26,7 +26,7 @@
 
 <div class={blurContents ? 'blur' : ''}>
 	<iframe
-		sandbox="allow-scripts allow-pointer-lock allow-popups allow-forms allow-same-origin"
+		sandbox="allow-scripts allow-pointer-lock allow-popups allow-modals allow-forms allow-same-origin"
 		src="https://fake.origin.com"
 		title="site preview"
 		bind:this={iframe}

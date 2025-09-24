@@ -36,6 +36,20 @@
 		};
 
 		Monaco = await import('monaco-editor');
+		/*
+		const jsLang =
+			Monaco.languages.getLanguages()[Monaco.languages.getEncodedLanguageId('javascript') - 1];
+
+		const jsConfig = await jsLang.loader();
+
+		Monaco.languages.register({
+			...jsLang,
+			id: 'x-node',
+			mimetypes: ['application/x-node']
+		});
+		Monaco.languages.setLanguageConfiguration('x-node', jsConfig);
+
+*/
 		editor = Monaco.editor.create(divEl, {
 			value: content,
 			language: 'html'

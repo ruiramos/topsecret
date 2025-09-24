@@ -1,3 +1,5 @@
+//import vm from 'vm';
+
 import { getWebsite } from '$lib/serverUtils';
 /** @type {import('@sveltejs/kit').RequestHandler} */
 
@@ -12,7 +14,7 @@ export async function get({ params, url }) {
 	<body style="margin: 0; padding: 0">
 	<iframe 
 		style="width: 100%; height: 100vh; border: 0" 
-		sandbox="allow-scripts allow-pointer-lock allow-popups allow-forms"></iframe>
+		sandbox="allow-scripts allow-pointer-lock allow-popups allow-forms allow-modals allow-same-origin"></iframe>
 	<script type="text/javascript">
 		document.querySelector('iframe').srcdoc = decodeURIComponent("${content}");
 		try {
@@ -40,6 +42,22 @@ export async function get({ params, url }) {
 	</body></html>
 	`;
 	const site = await getWebsite(id);
+
+	/*
+	const parsed = parseHtml(site);
+	const ssFn = parsed.select('script[data-server]');
+	if(ssFn){
+		
+	}
+	const context = {};
+	const script = new vm.SourceTextModule('export default function getData(){ return 42; }', {
+		context
+	});
+	vm.createContext(context);
+	await script.link(() => {});
+	await script.evaluate();
+	console.log(context);
+	*/
 
 	if (site && site.indexOf('lock-') !== 0) {
 		return {

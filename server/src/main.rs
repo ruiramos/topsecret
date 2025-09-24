@@ -1,18 +1,25 @@
+/*
 use poem::{
     handler, listener::TcpListener, middleware::Tracing, post, web::Json, EndpointExt, Route,
     Server,
 };
+*/
 
 use serde::Deserialize;
 
 use std::{path::Path, sync::Arc};
 
+use swc::ecmascript::ast::EsVersion;
 use swc::{self, config::Options};
 use swc_common::{
+    comments::SingleThreadedComments,
     errors::{ColorConfig, Handler},
-    SourceMap,
+    Globals, Mark, SourceMap, GLOBALS,
 };
+use swc_ecma_transforms_react::{react, Options as ReactOptions};
+use swc_ecmascript::parser::{EsConfig, Syntax};
 
+/*
 #[derive(Debug, Deserialize)]
 struct SourceCode {
     hello: String,
@@ -22,6 +29,7 @@ struct SourceCode {
 fn compile(req: Json<SourceCode>) -> String {
     format!("hello: {}", req.hello)
 }
+*/
 
 /*
 #[tokio::main]
@@ -41,27 +49,66 @@ async fn main() -> Result<(), std::io::Error> {
 
 fn main() {
     let cm = Arc::<SourceMap>::default();
+
     let handler = Arc::new(Handler::with_tty_emitter(
         ColorConfig::Auto,
         true,
         false,
         Some(cm.clone()),
     ));
+
     let c = swc::Compiler::new(cm.clone());
 
     let fm = cm
-        .load_file(Path::new("foo.js"))
-        .expect("failed to load file");
+        .load_file(Path::new("index.js"))
+        .expect("Failed to load JS file");
 
-    let result = c
-        .process_js_file(
-            fm,
-            &handler,
-            &Options {
-                ..Default::default()
-            },
-        )
-        .expect("failed to process file");
+    let parse_result = c.parse_js(
+        fm,
+        &handler,
+        EsVersion::Es2015,
+        Syntax::Es(EsConfig {
+            jsx: true,
+            ..Default::default()
+        }),
+        swc::config::IsModule::Bool(true),
+        None,
+    );
 
-    print!("{:?}", result);
+    if let Ok(program) = parse_result {
+        let comments = SingleThreadedComments::default();
+        let globals = Globals::default();
+
+        GLOBALS.set(&globals, || {
+            let top_level_mark = Mark::fresh(Mark::root());
+
+            // applies the react transformer, a port of @babel/preset-react
+            let program = c.transform(
+                &handler,
+                program,
+                false,
+                react(
+                    cm.clone(),
+                    Some(&comments),
+                    ReactOptions {
+                        ..Default::default()
+                    },
+                    top_level_mark,
+                ),
+            );
+
+            // generates the JS code
+            let output = c
+                .process_js(
+                    &handler,
+                    program,
+                    &Options {
+                        is_module: swc::config::IsModule::Bool(true),
+                        ..Default::default()
+                    },
+                )
+                .expect("failed to process file");
+            print!("{}", output.code);
+        });
+    }
 }

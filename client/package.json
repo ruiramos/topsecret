@@ -36,6 +36,6 @@
     "cookie": "^0.4.2",
     "lodash": "^4.17.21",
     "lodash-es": "^4.17.21",
-    "monaco-editor": "^0.32.1"
+    "monaco-editor": "^0.33.0"
   }
 }
